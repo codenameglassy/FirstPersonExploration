@@ -1,8 +1,9 @@
 // EchoResponder
-// Responsibility: Replaces the Resonator. Listens for EchoWaves, works out exactly when the visible
-// front reaches its anchor, and answers one beat later in one of two tiers. Engage commits state and
-// needs range, charge and line of sight; acknowledge is purely expressive. Reactions on the same
-// prefab subscribe to the C# events. Ticks only while an echo is on its way.
+// Responsibility: Replaces the Resonator. Listens for EchoWaves, measures to the nearest point on its
+// own colliders so it answers the moment the visible shell touches it, and responds one beat later in
+// one of two tiers. Engage commits state and needs range, charge and line of sight; acknowledge is
+// purely expressive. Reactions on the same prefab subscribe to the C# events. Ticks only while an
+// echo is on its way.
 using System;
 using Game.Core;
 using UnityEngine;
@@ -19,10 +20,13 @@ namespace Game.Echo
 
         [SerializeField] private EchoResponderProfileSO profile;
         [SerializeField] private EchoWaveEventChannelSO waveChannel;
-        [Tooltip("Point used for distance, line of sight and the answering shell. Place it at the object's visual centre. Empty uses this transform.")]
+        [Tooltip("Point used for line of sight and the answering shell. Place it at the object's visual centre. Empty uses this transform.")]
         [SerializeField] private Transform anchor;
+        [Tooltip("Colliders that define the object's surface for reach. Empty uses every collider on this object and its children. Box, Sphere, Capsule and convex Mesh colliders are supported.")]
+        [SerializeField] private Collider[] reachColliders;
 
         private readonly PendingEcho[] pending = new PendingEcho[MaxPending];
+        private Collider[] surface;
         private int pendingCount;
         private TickManager tickManager;
         private PoolService poolService;
@@ -59,6 +63,8 @@ namespace Game.Echo
             {
                 Debug.LogError("EchoResponder: No responder profile assigned.", this);
             }
+
+            CacheSurface();
         }
 
         private void OnEnable()
@@ -99,7 +105,7 @@ namespace Game.Echo
                 return;
             }
 
-            float distance = Vector3.Distance(wave.Origin, AnchorPosition);
+            float distance = ReachDistance(wave.Origin);
             if (!wave.TryGetArrivalTime(distance, out float arrivalTime))
             {
                 return;
@@ -157,6 +163,35 @@ namespace Game.Echo
             {
                 StopTicking();
             }
+        }
+
+        // Distance from a point to this object's nearest surface, minus the profile's grace. Falls
+        // back to the anchor point when no supported collider is available.
+        private float ReachDistance(Vector3 point)
+        {
+            float nearest = float.MaxValue;
+
+            for (int i = 0; i < surface.Length; i++)
+            {
+                Collider surfaceCollider = surface[i];
+                if (surfaceCollider == null || !surfaceCollider.enabled || !surfaceCollider.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                float distance = Vector3.Distance(point, surfaceCollider.ClosestPoint(point));
+                if (distance < nearest)
+                {
+                    nearest = distance;
+                }
+            }
+
+            if (nearest == float.MaxValue)
+            {
+                nearest = Vector3.Distance(point, AnchorPosition);
+            }
+
+            return Mathf.Max(0f, nearest - profile.ReachGrace);
         }
 
         private void Resolve(in EchoContext context)
@@ -259,6 +294,57 @@ namespace Game.Echo
             }
         }
 
+        private void CacheSurface()
+        {
+            Collider[] source = reachColliders != null && reachColliders.Length > 0
+                ? reachColliders
+                : GetComponentsInChildren<Collider>(true);
+
+            int usable = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (SupportsClosestPoint(source[i]))
+                {
+                    usable++;
+                }
+                else if (source[i] != null)
+                {
+                    Debug.LogWarning($"EchoResponder: '{source[i].name}' cannot report a closest point (only Box, Sphere, Capsule and convex Mesh colliders can), so it is ignored for reach.", source[i]);
+                }
+            }
+
+            surface = new Collider[usable];
+            int write = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (SupportsClosestPoint(source[i]))
+                {
+                    surface[write] = source[i];
+                    write++;
+                }
+            }
+
+            if (usable == 0)
+            {
+                Debug.LogWarning("EchoResponder: No usable colliders, so reach is measured to the anchor point.", this);
+            }
+        }
+
+        private static bool SupportsClosestPoint(Collider candidate)
+        {
+            if (candidate == null)
+            {
+                return false;
+            }
+
+            if (candidate is MeshCollider meshCollider)
+            {
+                return meshCollider.convex;
+            }
+
+            return candidate is BoxCollider || candidate is SphereCollider || candidate is CapsuleCollider;
+        }
+
         private void RemoveAt(int index)
         {
             int last = pendingCount - 1;
@@ -294,6 +380,8 @@ namespace Game.Echo
         }
 
 #if UNITY_EDITOR
+        // Approximate engage zone: the object's bounds grown by engage distance plus grace. Exact on
+        // the faces, slightly generous at the corners, where the true zone is rounded.
         private void OnDrawGizmosSelected()
         {
             if (profile == null || profile.EngageDistance <= 0f)
@@ -301,8 +389,34 @@ namespace Game.Echo
                 return;
             }
 
+            Collider[] colliders = reachColliders != null && reachColliders.Length > 0
+                ? reachColliders
+                : GetComponentsInChildren<Collider>();
+
+            bool hasBounds = false;
+            Bounds combined = new Bounds(AnchorPosition, Vector3.zero);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] == null)
+                {
+                    continue;
+                }
+
+                if (hasBounds)
+                {
+                    combined.Encapsulate(colliders[i].bounds);
+                }
+                else
+                {
+                    combined = colliders[i].bounds;
+                    hasBounds = true;
+                }
+            }
+
+            float reach = profile.EngageDistance + profile.ReachGrace;
             Gizmos.color = new Color(0.4f, 1f, 0.9f, 0.5f);
-            Gizmos.DrawWireSphere(AnchorPosition, profile.EngageDistance);
+            Gizmos.DrawWireCube(combined.center, combined.size + Vector3.one * (2f * reach));
         }
 #endif
     }

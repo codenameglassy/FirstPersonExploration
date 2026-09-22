@@ -1,8 +1,9 @@
 // EchoResponderProfileSO
 // Responsibility: Shared, read-only rules and look for echo responders: when an echo engages versus
-// only acknowledges, the answer timing, and the answering shell. The answering shell is always full
-// size; only its brightness tells engage from acknowledge. Flyweight asset; one profile per kind of
-// object (prayer wheel, door, flag line), never written to at runtime.
+// only acknowledges, how forgiving reach is, the answer timing, and the answering shell. Distances
+// are measured to the object's surface. The answering shell is always full size; only its
+// brightness tells engage from acknowledge. Flyweight asset; one profile per kind of object, never
+// written to at runtime.
 using Game.Core;
 using UnityEngine;
 
@@ -11,8 +12,12 @@ namespace Game.Echo
     [CreateAssetMenu(fileName = "EchoResponderProfile", menuName = "Game/Echo/Responder Profile")]
     public sealed class EchoResponderProfileSO : ScriptableObject
     {
+        [Header("Reach")]
+        [Tooltip("Forgiveness in metres. The object counts as reached, and as in range, this much before the shell actually touches its surface.")]
+        [SerializeField, Min(0f)] private float reachGrace = 0.25f;
+
         [Header("Engage (commits state)")]
-        [Tooltip("Only echoes emitted within this distance engage. 0 or less lets the whole wave engage, which is dangerous for anything irreversible.")]
+        [Tooltip("Only echoes emitted within this distance of the object's surface engage. 0 or less lets the whole wave engage, which is dangerous for anything irreversible.")]
         [SerializeField] private float engageDistance = 2.5f;
         [Tooltip("Below this charge the echo only acknowledges.")]
         [SerializeField, Range(0f, 1f)] private float minimumCharge = 0f;
@@ -46,6 +51,7 @@ namespace Game.Echo
         [Tooltip("Brightness of an acknowledge answer relative to an engage answer. Set to 1 to make both identical.")]
         [SerializeField, Range(0f, 1f)] private float acknowledgeBrightness = 0.6f;
 
+        public float ReachGrace => reachGrace;
         public float EngageDistance => engageDistance;
         public float MinimumCharge => minimumCharge;
         public bool EngageOnce => engageOnce;

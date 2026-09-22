@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   engageDistance: 2.5
   minimumCharge: 0
-  engageOnce: 0
+  engageOnce: 1
   refractoryPeriod: 0.5
   requireLineOfSight: 1
   occlusionMask:
