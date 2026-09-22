@@ -1,8 +1,10 @@
 // LegacyPlayerInput
-// Responsibility: Player input source using the legacy Input Manager. Reads devices once per frame,
-// sends look deltas to the camera rig and a CharacterInputs snapshot to the character, and manages
-// cursor lock. Replacing this component is the only change needed for a different input source.
+// Responsibility: The only component that reads devices, through the Legacy Input Manager. Reads once
+// per frame, sends look deltas to the camera rig and a CharacterInputs snapshot to the character,
+// turns the echo button into echo commands, and manages cursor lock. Replacing this component is
+// the only change needed for a different input source.
 using Game.Core;
+using Game.Echo;
 using UnityEngine;
 
 namespace Game.Player
@@ -17,6 +19,7 @@ namespace Game.Player
 
         [SerializeField] private FirstPersonCharacter character;
         [SerializeField] private FirstPersonCameraRig cameraRig;
+        [SerializeField] private EchoEmitter echoEmitter;
 
         [Header("Look")]
         [SerializeField, Min(0.01f)] private float mouseSensitivity = 2f;
@@ -27,10 +30,24 @@ namespace Game.Player
         [Tooltip("C by default. Ctrl combos like Ctrl+W close the browser tab in WebGL builds.")]
         [SerializeField] private KeyCode crouchKey = KeyCode.C;
         [SerializeField] private KeyCode releaseCursorKey = KeyCode.Escape;
+        [Tooltip("Left mouse by default. The click that re-locks the cursor never starts a charge.")]
+        [SerializeField] private KeyCode echoKey = KeyCode.Mouse0;
 
         private TickManager tickManager;
         private CharacterInputs inputs;
         private bool lockedThisFrame;
+        private bool echoHeld;
+
+        private BeginEchoChargeCommand beginEchoCommand;
+        private ReleaseEchoChargeCommand releaseEchoCommand;
+        private CancelEchoChargeCommand cancelEchoCommand;
+
+        private void Awake()
+        {
+            beginEchoCommand = new BeginEchoChargeCommand(echoEmitter);
+            releaseEchoCommand = new ReleaseEchoChargeCommand(echoEmitter);
+            cancelEchoCommand = new CancelEchoChargeCommand(echoEmitter);
+        }
 
         private void OnEnable()
         {
@@ -54,6 +71,7 @@ namespace Game.Player
                 tickManager = null;
             }
 
+            CancelEcho();
             SendNeutralInputs();
             SetCursorLocked(false);
         }
@@ -76,6 +94,8 @@ namespace Game.Player
                 cameraRig.AddLookDelta(new Vector2(Input.GetAxisRaw(MouseXAxis) * mouseSensitivity, lookY));
             }
 
+            UpdateEcho(locked);
+
             if (character == null)
             {
                 return;
@@ -89,6 +109,50 @@ namespace Game.Player
             inputs.CrouchHeld = locked && Input.GetKey(crouchKey);
 
             character.SetInputs(ref inputs);
+        }
+
+        private void UpdateEcho(bool locked)
+        {
+            if (echoEmitter == null)
+            {
+                return;
+            }
+
+            if (echoHeld)
+            {
+                if (!locked)
+                {
+                    CancelEcho();
+                }
+                else if (!Input.GetKey(echoKey))
+                {
+                    echoHeld = false;
+                    echoEmitter.Enqueue(releaseEchoCommand);
+                }
+
+                return;
+            }
+
+            if (locked && !lockedThisFrame && Input.GetKeyDown(echoKey))
+            {
+                echoHeld = true;
+                echoEmitter.Enqueue(beginEchoCommand);
+            }
+        }
+
+        private void CancelEcho()
+        {
+            if (!echoHeld)
+            {
+                return;
+            }
+
+            echoHeld = false;
+
+            if (echoEmitter != null)
+            {
+                echoEmitter.Enqueue(cancelEchoCommand);
+            }
         }
 
         private void UpdateCursorLock()
