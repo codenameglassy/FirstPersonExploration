@@ -16,7 +16,7 @@ MonoBehaviour:
   cooldown: 0.5
   minRadius: 3
   maxRadius: 12
-  minDuration: 0.55
+  minDuration: 0.45
   maxDuration: 0.7
   startRadius01: 0.15
   echoColour: {r: 1.6, g: 1.5, b: 1.2, a: 1}

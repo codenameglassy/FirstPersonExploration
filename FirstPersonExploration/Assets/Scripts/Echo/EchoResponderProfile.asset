@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6051add7e265f7545974f8d94d84b88e, type: 3}
   m_Name: EchoResponderProfile
   m_EditorClassIdentifier: 
-  engageDistance: 2.5
+  reachGrace: 0.25
+  engageDistance: 12
   minimumCharge: 0
   engageOnce: 1
   refractoryPeriod: 0.5
   requireLineOfSight: 1
   occlusionMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   acknowledge: 1
   responseDelay: 0.08
   emitShell: 1
