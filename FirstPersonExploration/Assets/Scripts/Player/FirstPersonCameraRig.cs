@@ -19,6 +19,9 @@ namespace Game.Player
         private float pitch;
         private float eyeHeight;
 
+        // View yaw in degrees, 0 to 360.
+        public float Yaw => yaw;
+
         public Quaternion LookRotation => Quaternion.Euler(pitch, yaw, 0f);
 
         // Yaw only. Camera effects offset position in this frame so bob stays level when looking up or down.
