@@ -1,7 +1,7 @@
 // GrassTypeSO
 // Responsibility: Shared, immutable definition of one grass variety (flyweight). Holds render data
 // (mesh, material, draw distance, shadow flags) and bake rules (density, scale range, mask
-// threshold). Never holds runtime state.
+// threshold, normal alignment). Never holds runtime state.
 using UnityEngine;
 
 namespace Game.Foliage
@@ -38,6 +38,9 @@ namespace Game.Foliage
         [SerializeField, Range(0f, 1f), Tooltip("Terrain layer weight below which no grass is placed.")]
         private float maskThreshold = 0.3f;
 
+        [SerializeField, Range(0f, 1f), Tooltip("0 keeps clumps vertical, 1 tilts them fully to the terrain normal.")]
+        private float normalAlignment = 1f;
+
         public Mesh Mesh => mesh;
         public Material Material => material;
         public float DrawDistance => drawDistance;
@@ -47,6 +50,7 @@ namespace Game.Foliage
         public float MinScale => minScale;
         public float MaxScale => maxScale;
         public float MaskThreshold => maskThreshold;
+        public float NormalAlignment => normalAlignment;
 
         private void OnValidate()
         {

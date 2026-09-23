@@ -1,6 +1,7 @@
 // GrassInstance
-// Responsibility: Immutable baked placement of one grass clump: world position, yaw and uniform
-// scale. Stored as five floats instead of a full matrix so field assets stay small in WebGL builds.
+// Responsibility: Immutable baked placement of one grass clump: world position, rotation (yaw plus
+// tilt toward the terrain normal) and uniform scale. Stored as eight floats instead of a full matrix
+// so field assets stay small in WebGL builds.
 using System;
 using UnityEngine;
 
@@ -10,23 +11,23 @@ namespace Game.Foliage
     public struct GrassInstance
     {
         [SerializeField] private Vector3 position;
-        [SerializeField] private float yaw;
+        [SerializeField] private Quaternion rotation;
         [SerializeField] private float scale;
 
-        public GrassInstance(Vector3 position, float yaw, float scale)
+        public GrassInstance(Vector3 position, Quaternion rotation, float scale)
         {
             this.position = position;
-            this.yaw = yaw;
+            this.rotation = rotation;
             this.scale = scale;
         }
 
         public Vector3 Position => position;
-        public float Yaw => yaw;
+        public Quaternion Rotation => rotation;
         public float Scale => scale;
 
         public Matrix4x4 ToMatrix()
         {
-            return Matrix4x4.TRS(position, Quaternion.Euler(0f, yaw, 0f), new Vector3(scale, scale, scale));
+            return Matrix4x4.TRS(position, rotation, new Vector3(scale, scale, scale));
         }
     }
 }

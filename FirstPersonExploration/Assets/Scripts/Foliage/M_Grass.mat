@@ -21,18 +21,17 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Grass
-  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
+  m_Shader: {fileID: 4800000, guid: b7739875830980f4a97e8de94b60bc2e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _ALPHATEST_ON
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
-  m_CustomRenderQueue: 2450
-  stringTagMap:
-    RenderType: TransparentCutout
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
@@ -98,6 +97,8 @@ Material:
     m_Floats:
     - _AlphaClip: 1
     - _AlphaToMask: 1
+    - _BacklightPower: 4
+    - _BacklightStrength: 0.6
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BlendOp: 0
@@ -111,14 +112,29 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _FadeEnd: 35
+    - _FadeShrink: 0.55
+    - _FadeStart: 25
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _GradientHeight: 0.05
+    - _GustScale: 0.08
+    - _GustSpeed: 3
+    - _GustStrength: 0.2
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
+    - _PushFlatten: 0.3
+    - _PushRadius: 4
+    - _PushStrength: 2
     - _QueueOffset: 0
+    - _RampSmoothness: 0.1
+    - _RampThreshold: 0.5
     - _ReceiveShadows: 1
+    - _RippleGlow: 2
+    - _RippleStrength: 0.15
+    - _RippleWidth: 0.5
     - _SampleGI: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -126,11 +142,21 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _VariationScale: 0.05
+    - _VariationStrength: 0.5
+    - _WindAngle: 45
+    - _WindSpeed: 4
+    - _WindStrength: 0.09
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DryColor: {r: 0.5491932, g: 0.6698113, b: 0.48340157, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _RippleColor: {r: 0.6320754, g: 0.2957925, b: 0.068574235, a: 1}
+    - _RootColor: {r: 0.27450982, g: 0.43529415, b: 0.3372549, a: 1}
+    - _ShadowTint: {r: 0.8396226, g: 0.8396226, b: 0.8396226, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _TipColor: {r: 0.61349994, g: 0.6886792, b: 0.4255518, a: 1}
   m_BuildTextureStacks: []

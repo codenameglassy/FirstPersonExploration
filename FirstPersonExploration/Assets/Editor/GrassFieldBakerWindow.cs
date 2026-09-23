@@ -1,7 +1,8 @@
 // GrassFieldBakerWindow
 // Responsibility: Editor tool that scatters one GrassTypeSO over a terrain wherever a chosen terrain
-// layer is painted, groups the result into spatial chunks and writes a GrassFieldSO. Deterministic
-// for a given seed, and repainting the mask does not reshuffle untouched areas. Editor only.
+// layer is painted, tilts each clump toward the terrain normal, groups the result into spatial chunks
+// and writes a GrassFieldSO. Deterministic for a given seed, and repainting the mask does not
+// reshuffle untouched areas. Editor only.
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -167,6 +168,7 @@ namespace Game.Foliage.EditorTools
             float threshold = grassType.MaskThreshold;
             float minScale = grassType.MinScale;
             float maxScale = grassType.MaxScale;
+            float normalAlignment = grassType.NormalAlignment;
 
             System.Random random = new System.Random(seed);
             Dictionary<Vector2Int, List<GrassInstance>> buckets = new Dictionary<Vector2Int, List<GrassInstance>>();
@@ -209,6 +211,11 @@ namespace Game.Foliage.EditorTools
                     Vector3 world = new Vector3(origin.x + localX, 0f, origin.z + localZ);
                     world.y = origin.y + terrain.SampleHeight(world);
 
+                    // Terrains cannot be rotated, so the terrain-space normal is already world space.
+                    Vector3 terrainNormal = data.GetInterpolatedNormal(localX / size.x, localZ / size.z);
+                    Vector3 up = Vector3.Slerp(Vector3.up, terrainNormal, normalAlignment).normalized;
+                    Quaternion rotation = Quaternion.FromToRotation(Vector3.up, up) * Quaternion.Euler(0f, yaw, 0f);
+
                     Vector2Int key = new Vector2Int(Mathf.FloorToInt(localX / chunkSize), Mathf.FloorToInt(localZ / chunkSize));
                     if (!buckets.TryGetValue(key, out List<GrassInstance> list))
                     {
@@ -216,7 +223,7 @@ namespace Game.Foliage.EditorTools
                         buckets.Add(key, list);
                     }
 
-                    list.Add(new GrassInstance(world, yaw, scale));
+                    list.Add(new GrassInstance(world, rotation, scale));
                 }
             }
 
