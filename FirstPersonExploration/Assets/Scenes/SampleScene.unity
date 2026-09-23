@@ -2591,6 +2591,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fields:
   - {fileID: 11400000, guid: 9b4b569c30f0ced4ebe09774a355978d, type: 2}
+  - {fileID: 11400000, guid: dd38e5cd503cfe54791db5bec8901584, type: 2}
   cullingCamera: {fileID: 1817551424}
 --- !u!4 &1325599205
 Transform:

@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0295636b723ee1e488d7cd6f1fd81175, type: 3}
+  m_Name: GrassField_Flower
+  m_EditorClassIdentifier: 
+  grassType: {fileID: 11400000, guid: d32fd0a4f397ec947a0b40db4653d9e9, type: 2}
+  chunkSize: 16
+  totalInstances: 14
+  chunks:
+  - bounds:
+      m_Center: {x: -61.884857, y: 1.358058, z: 15.298187}
+      m_Extent: {x: 6.4050827, y: 4.373042, z: 4.8820724}
+    instances:
+    - position: {x: -63.95233, y: 1.3934915, z: 14.753723}
+      rotation: {x: 0.040354595, y: 0.9878985, z: 0.08602672, w: 0.12258657}
+      scale: 1.405802
+    - position: {x: -62.932373, y: 1.3226243, z: 14.924927}
+      rotation: {x: -0.0099945115, y: 0.96969587, z: 0.08208922, w: -0.22989438}
+      scale: 1.5696911
+    - position: {x: -60.228516, y: 1.382819, z: 15.286804}
+      rotation: {x: -0.0620181, y: 0.47598106, z: -0.016211433, w: -0.8771164}
+      scale: 1.5616016
+    - position: {x: -59.817383, y: 1.3721857, z: 15.842651}
+      rotation: {x: -0.062542364, y: 0.52249175, z: -0.031040564, w: -0.84978074}
+      scale: 1.1375611
+  - bounds:
+      m_Center: {x: -60.135834, y: 0.98039603, z: 20.312286}
+      m_Extent: {x: 6.7347336, y: 4.827546, z: 8.154045}
+    instances:
+    - position: {x: -62.53296, y: 1.111925, z: 16.49585}
+      rotation: {x: -0.018406319, y: 0.99104017, z: 0.060128517, w: -0.11783534}
+      scale: 1.21674
+    - position: {x: -60.33441, y: 1.0222499, z: 19.63794}
+      rotation: {x: -0.044743165, y: 0.10569967, z: -0.0802632, w: -0.9901432}
+      scale: 1.5648816
+    - position: {x: -59.274414, y: 1.2307038, z: 19.548279}
+      rotation: {x: -0.06274784, y: 0.34237182, z: -0.09263624, w: -0.9328788}
+      scale: 0.9563519
+    - position: {x: -62.295105, y: 0.5621292, z: 21.939697}
+      rotation: {x: 0.021742541, y: 0.5052019, z: 0.060818598, w: 0.86058086}
+      scale: 0.98925674
+    - position: {x: -60.015625, y: 0.81293887, z: 22.825989}
+      rotation: {x: -0.106344774, y: 0.99198216, z: 0.04901938, w: 0.04753221}
+      scale: 1.3152487
+    - position: {x: -61.744934, y: 0.49045843, z: 23.107117}
+      rotation: {x: -0.051732257, y: 0.99061894, z: 0.054747887, w: 0.11402036}
+      scale: 1.259802
+    - position: {x: -58.49243, y: 1.1439594, z: 24.128723}
+      rotation: {x: -0.10508263, y: 0.7554132, z: 0.124760024, w: 0.63462067}
+      scale: 1.2733839
+    - position: {x: -57.73871, y: 1.4703336, z: 22.8443}
+      rotation: {x: -0.041139256, y: 0.10615199, z: -0.16772047, w: -0.9792391}
+      scale: 1.7609352
+  - bounds:
+      m_Center: {x: -66.66797, y: 0, z: 41.602325}
+      m_Extent: {x: 4.6502914, y: 4.3376083, z: 5.304497}
+    instances:
+    - position: {x: -66.355286, y: 0, z: 40.635437}
+      rotation: {x: 0, y: 0.27717263, z: 0, w: 0.96082014}
+      scale: 0.8057979
+    - position: {x: -66.98065, y: 0, z: 42.569214}
+      rotation: {x: 0, y: 0.80267787, z: 0, w: -0.59641284}
+      scale: 1.1632674

@@ -1,8 +1,9 @@
 // GrassFieldBakerWindow
 // Responsibility: Editor tool that scatters one GrassTypeSO over a terrain wherever a chosen terrain
-// layer is painted, tilts each clump toward the terrain normal, groups the result into spatial chunks
-// and writes a GrassFieldSO. Deterministic for a given seed, and repainting the mask does not
-// reshuffle untouched areas. Editor only.
+// layer is painted. Applies the type's placement rules (clustering, slope and altitude limits with
+// soft fades, collider exclusion), shrinks clumps where coverage thins, tilts each clump toward the
+// terrain normal, groups the result into spatial chunks and writes a GrassFieldSO. Deterministic for
+// a given seed, and changing the mask or rules never reshuffles surviving clumps. Editor only.
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -11,6 +12,11 @@ namespace Game.Foliage.EditorTools
 {
     public sealed class GrassFieldBakerWindow : EditorWindow
     {
+        private const float ClusterContrastLow = 0.3f;
+        private const float ClusterContrastHigh = 0.7f;
+
+        private readonly Collider[] overlapBuffer = new Collider[16];
+
         private Terrain terrain;
         private int terrainLayerIndex;
         private GrassTypeSO grassType;
@@ -33,7 +39,9 @@ namespace Game.Foliage.EditorTools
                 new GUIContent("Target Field", "Leave empty to create a new asset."),
                 targetField, typeof(GrassFieldSO), false);
             chunkSize = Mathf.Max(4f, EditorGUILayout.FloatField("Chunk Size", chunkSize));
-            seed = EditorGUILayout.IntField("Seed", seed);
+            seed = EditorGUILayout.IntField(
+                new GUIContent("Seed", "Use a different seed for each layered type so they don't share positions."),
+                seed);
 
             EditorGUILayout.Space();
 
@@ -126,9 +134,10 @@ namespace Game.Foliage.EditorTools
             }
 
             GrassChunk[] chunks;
+            int excludedCount;
             try
             {
-                chunks = Scatter(data);
+                chunks = Scatter(data, out excludedCount);
             }
             finally
             {
@@ -153,11 +162,14 @@ namespace Game.Foliage.EditorTools
             AssetDatabase.SaveAssets();
             targetField = field;
 
-            Debug.Log($"Grass Field Baker: {field.TotalInstances} instances in {field.ChunkCount} chunks.", field);
+            Debug.Log($"Grass Field Baker: {field.TotalInstances} instances in {field.ChunkCount} chunks, " +
+                      $"{excludedCount} skipped by exclusion colliders.", field);
         }
 
-        private GrassChunk[] Scatter(TerrainData data)
+        private GrassChunk[] Scatter(TerrainData data, out int excludedCount)
         {
+            excludedCount = 0;
+
             Vector3 origin = terrain.transform.position;
             Vector3 size = data.size;
             int alphaWidth = data.alphamapWidth;
@@ -169,6 +181,12 @@ namespace Game.Foliage.EditorTools
             float minScale = grassType.MinScale;
             float maxScale = grassType.MaxScale;
             float normalAlignment = grassType.NormalAlignment;
+            float edgeShrink = grassType.EdgeShrink;
+            Vector2 clusterOffset = GetClusterOffset(seed);
+            Collider terrainCollider = terrain.GetComponent<TerrainCollider>();
+
+            // Edit mode physics may hold stale transforms for colliders moved since the last sync.
+            Physics.SyncTransforms();
 
             System.Random random = new System.Random(seed);
             Dictionary<Vector2Int, List<GrassInstance>> buckets = new Dictionary<Vector2Int, List<GrassInstance>>();
@@ -187,7 +205,7 @@ namespace Game.Foliage.EditorTools
                 for (int column = 0; column < columns; column++)
                 {
                     // Every random value is drawn before any rejection so each grid cell always
-                    // consumes the same numbers. Repainting the mask then leaves other cells unchanged.
+                    // consumes the same numbers. Changing the mask or rules leaves other cells unchanged.
                     float localX = (column + (float)random.NextDouble()) * spacing;
                     float localZ = (row + (float)random.NextDouble()) * spacing;
                     float yaw = (float)random.NextDouble() * 360f;
@@ -201,20 +219,43 @@ namespace Game.Foliage.EditorTools
 
                     int alphaX = Mathf.Clamp(Mathf.RoundToInt(localX / size.x * (alphaWidth - 1)), 0, alphaWidth - 1);
                     int alphaZ = Mathf.Clamp(Mathf.RoundToInt(localZ / size.z * (alphaHeight - 1)), 0, alphaHeight - 1);
-                    float weight = alphamaps[alphaZ, alphaX, terrainLayerIndex];
-
-                    if (weight < threshold || keepRoll > weight)
+                    float mask = alphamaps[alphaZ, alphaX, terrainLayerIndex];
+                    if (mask < threshold)
                     {
                         continue;
                     }
 
-                    Vector3 world = new Vector3(origin.x + localX, 0f, origin.z + localZ);
+                    float worldX = origin.x + localX;
+                    float worldZ = origin.z + localZ;
+
+                    // Cheap rejection first. Later factors only lower the weight further.
+                    float coverage = mask * GetClusterWeight(worldX, worldZ, clusterOffset);
+                    if (keepRoll > coverage)
+                    {
+                        continue;
+                    }
+
+                    Vector3 world = new Vector3(worldX, 0f, worldZ);
                     world.y = origin.y + terrain.SampleHeight(world);
 
                     // Terrains cannot be rotated, so the terrain-space normal is already world space.
                     Vector3 terrainNormal = data.GetInterpolatedNormal(localX / size.x, localZ / size.z);
+
+                    float weight = coverage * GetSlopeWeight(terrainNormal) * GetAltitudeWeight(world.y);
+                    if (keepRoll > weight)
+                    {
+                        continue;
+                    }
+
+                    if (IsExcluded(world, terrainCollider))
+                    {
+                        excludedCount++;
+                        continue;
+                    }
+
                     Vector3 up = Vector3.Slerp(Vector3.up, terrainNormal, normalAlignment).normalized;
                     Quaternion rotation = Quaternion.FromToRotation(Vector3.up, up) * Quaternion.Euler(0f, yaw, 0f);
+                    float finalScale = scale * Mathf.Lerp(1f - edgeShrink, 1f, weight);
 
                     Vector2Int key = new Vector2Int(Mathf.FloorToInt(localX / chunkSize), Mathf.FloorToInt(localZ / chunkSize));
                     if (!buckets.TryGetValue(key, out List<GrassInstance> list))
@@ -223,11 +264,65 @@ namespace Game.Foliage.EditorTools
                         buckets.Add(key, list);
                     }
 
-                    list.Add(new GrassInstance(world, rotation, scale));
+                    list.Add(new GrassInstance(world, rotation, finalScale));
                 }
             }
 
             return BuildChunks(buckets);
+        }
+
+        private float GetClusterWeight(float worldX, float worldZ, Vector2 offset)
+        {
+            float strength = grassType.ClusterStrength;
+            if (strength <= 0f)
+            {
+                return 1f;
+            }
+
+            float clusterScale = grassType.ClusterScale;
+            float noise = Mathf.PerlinNoise(worldX / clusterScale + offset.x, worldZ / clusterScale + offset.y);
+            float shaped = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(ClusterContrastLow, ClusterContrastHigh, noise));
+            return Mathf.Lerp(1f, shaped, strength);
+        }
+
+        private float GetSlopeWeight(Vector3 terrainNormal)
+        {
+            float slope = Vector3.Angle(Vector3.up, terrainNormal);
+            return FadeBelowLimit(slope, grassType.MaxSlope, grassType.SlopeFade);
+        }
+
+        private float GetAltitudeWeight(float height)
+        {
+            if (!grassType.LimitAltitude)
+            {
+                return 1f;
+            }
+
+            float fade = grassType.AltitudeFade;
+            return FadeBelowLimit(height, grassType.MaxAltitude, fade) *
+                   FadeBelowLimit(-height, -grassType.MinAltitude, fade);
+        }
+
+        private bool IsExcluded(Vector3 world, Collider terrainCollider)
+        {
+            int layers = grassType.ExclusionLayers.value;
+            if (layers == 0)
+            {
+                return false;
+            }
+
+            int count = Physics.OverlapSphereNonAlloc(
+                world, grassType.ExclusionClearance, overlapBuffer, layers, QueryTriggerInteraction.Ignore);
+
+            for (int i = 0; i < count; i++)
+            {
+                if (overlapBuffer[i] != terrainCollider)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private GrassChunk[] BuildChunks(Dictionary<Vector2Int, List<GrassInstance>> buckets)
@@ -252,6 +347,29 @@ namespace Game.Foliage.EditorTools
             }
 
             return chunks;
+        }
+
+        // 1 at or below limit minus fade, falling to 0 at the limit, 0 beyond it.
+        private static float FadeBelowLimit(float value, float limit, float fade)
+        {
+            if (value >= limit)
+            {
+                return 0f;
+            }
+
+            if (fade <= 0f)
+            {
+                return 1f;
+            }
+
+            return Mathf.Clamp01((limit - value) / fade);
+        }
+
+        // Seed-derived offset so types baked with different seeds get independent cluster patterns.
+        private static Vector2 GetClusterOffset(int bakeSeed)
+        {
+            System.Random offsetRandom = new System.Random(unchecked(bakeSeed * 486187739));
+            return new Vector2((float)offsetRandom.NextDouble() * 200f, (float)offsetRandom.NextDouble() * 200f);
         }
     }
 }

@@ -10,14 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e59102bbf6953464ebc64c69a6058388, type: 3}
-  m_Name: GrassType
+  m_Name: GrassType_Flower
   m_EditorClassIdentifier: 
   mesh: {fileID: 4300000, guid: 6c7959ced0233064b873a1a00d5ade50, type: 2}
-  material: {fileID: 2100000, guid: 2ed5f9dd2bfaba44c8c988d147a8063e, type: 2}
+  material: {fileID: 2100000, guid: 306e95e96f2d5a441b2ca9d498764fb6, type: 2}
   drawDistance: 35
   castShadows: 0
   receiveShadows: 1
-  density: 1
-  minScale: 0.8
-  maxScale: 1.2
+  density: 0.3
+  minScale: 1.2
+  maxScale: 2
   maskThreshold: 0.3
+  normalAlignment: 1
+  clusterScale: 4
+  clusterStrength: 0.8
+  edgeShrink: 0.6
+  maxSlope: 40
+  slopeFade: 8
+  limitAltitude: 0
+  minAltitude: 0
+  maxAltitude: 100
+  altitudeFade: 5
+  exclusionLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  exclusionClearance: 0.3
