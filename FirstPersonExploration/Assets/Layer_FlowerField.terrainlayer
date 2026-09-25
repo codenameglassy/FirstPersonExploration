@@ -9,7 +9,7 @@ TerrainLayer:
   m_Name: Layer_FlowerField
   m_DiffuseTexture: {fileID: 2800000, guid: c6614ed1f7bc5564f8495fadee9724b0, type: 3}
   m_NormalMapTexture: {fileID: 2800000, guid: 476dd87ffc5481e40b2ef0c257840310, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: 02da0673d37baed449d482902d67287a, type: 3}
+  m_MaskMapTexture: {fileID: 0}
   m_TileSize: {x: 2, y: 2}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}

@@ -9,7 +9,7 @@ TerrainLayer:
   m_Name: Layer_GrassflowerB
   m_DiffuseTexture: {fileID: 2800000, guid: 07f44d4cc88d7a14e9ef3821380ae9c6, type: 3}
   m_NormalMapTexture: {fileID: 2800000, guid: c0ceaffafa12d864fb1dd96c89cdfd95, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: 566b12d8fd087bd4c8a2392f49e876f2, type: 3}
+  m_MaskMapTexture: {fileID: 0}
   m_TileSize: {x: 2, y: 2}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}

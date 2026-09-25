@@ -9,7 +9,7 @@ TerrainLayer:
   m_Name: Layer_RockCliff
   m_DiffuseTexture: {fileID: 2800000, guid: feea2cf97829c484a9cecfa8a63aba3e, type: 3}
   m_NormalMapTexture: {fileID: 2800000, guid: deca3a760cbc7544a905fd00cdef71e9, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: 6f6d30f2b1eb4e04e8e9277f5fe0fde4, type: 3}
+  m_MaskMapTexture: {fileID: 0}
   m_TileSize: {x: 2, y: 2}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
