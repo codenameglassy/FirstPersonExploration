@@ -200,6 +200,7 @@ namespace Game.Echo
             }
         }
 
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {

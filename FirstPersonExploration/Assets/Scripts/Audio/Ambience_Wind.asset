@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ambience_Wind
   m_EditorClassIdentifier: 
   _clips:
-  - {fileID: 8300000, guid: 143aa7997b1aab040a80472a23734794, type: 3}
+  - {fileID: 8300000, guid: bec86cb98488ff0419d77d7708cfe7f3, type: 3}
   _output: {fileID: -3873294741316407714, guid: c0dd87fe03e787147ba8e519cb0d505b,
     type: 2}
   _volume: 1
